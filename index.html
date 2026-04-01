@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PILOT TIMER</title>
+<style>
+  :root {
+    --bg: #080c10; --bg2: #0d1318; --bg3: #111820;
+    --cyan: #00d4ff; --green: #00ff9d; --orange: #ff6b35;
+    --dc: rgba(0,212,255,0.12); --dg: rgba(0,255,157,0.10);
+    --border: rgba(0,212,255,0.18); --font: 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--cyan); font-family: var(--font); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding-bottom: 40px; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px); pointer-events: none; z-index: 100; }
+  body::after { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+  .wrap { position: relative; z-index: 1; width: 100%; max-width: 460px; padding: 0 16px; }
+  .hdr { text-align: center; padding: 28px 0 20px; }
+  .hdr-lbl { font-size: 9px; letter-spacing: 6px; color: rgba(0,212,255,0.35); text-transform: uppercase; margin-bottom: 6px; }
+  .hdr-title { font-size: 26px; font-weight: bold; letter-spacing: 8px; color: var(--cyan); text-shadow: 0 0 20px rgba(0,212,255,0.5); text-transform: uppercase; }
+  .hdr-sub { font-size: 8px; letter-spacing: 4px; color: rgba(0,212,255,0.25); margin-top: 4px; }
+  .div { height: 1px; background: linear-gradient(90deg, transparent, var(--cyan), transparent); opacity: 0.25; margin: 4px 0 24px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 18px; margin-bottom: 12px; position: relative; overflow: hidden; }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--cyan), transparent); opacity: 0.35; }
+  .clbl { font-size: 8px; letter-spacing: 4px; color: rgba(0,212,255,0.35); text-transform: uppercase; margin-bottom: 10px; }
+  input[type=text], input[type=number] { width: 100%; background: var(--bg3); border: 1px solid rgba(0,212,255,0.22); border-radius: 3px; color: var(--cyan); font-family: var(--font); font-size: 24px; letter-spacing: 4px; padding: 10px 12px; outline: none; -webkit-appearance: none; transition: border-color .2s, box-shadow .2s; }
+  input:focus { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0,212,255,0.18); }
+  input::placeholder { color: rgba(0,212,255,0.18); }
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .irow { display: flex; align-items: center; gap: 10px; }
+  .iunit { font-size: 10px; color: rgba(0,212,255,0.3); letter-spacing: 2px; }
+  .prev { margin-top: 12px; padding: 10px 12px; background: var(--dg); border: 1px solid rgba(0,255,157,0.18); border-radius: 3px; display: flex; align-items: center; justify-content: space-between; gap: 8px; opacity: 0; transform: translateY(4px); transition: opacity .25s, transform .25s; }
+  .prev.on { opacity: 1; transform: translateY(0); }
+  .prev-lbl { font-size: 11px; color: var(--green); letter-spacing: 1px; }
+  .prev-t { font-size: 20px; color: var(--green); letter-spacing: 3px; text-shadow: 0 0 10px rgba(0,255,157,0.35); }
+  .wbtn { background: transparent; border: 1px solid rgba(0,255,157,0.28); border-radius: 3px; color: var(--green); font-family: var(--font); font-size: 9px; letter-spacing: 2px; padding: 6px 9px; cursor: pointer; text-transform: uppercase; }
+  .mrow { display: flex; gap: 10px; }
+  .mbtn { flex: 1; background: var(--bg3); border: 1px solid rgba(0,212,255,0.18); border-radius: 3px; color: rgba(0,212,255,0.45); font-family: var(--font); font-size: 10px; letter-spacing: 2px; padding: 10px 6px; cursor: pointer; text-transform: uppercase; text-align: center; line-height: 1.5; transition: all .15s; }
+  .mbtn.on { border-color: var(--cyan); color: var(--cyan); background: var(--dc); box-shadow: 0 0 8px rgba(0,212,255,0.12); }
+  .cbtn { width: 100%; background: transparent; border: 1px solid var(--cyan); border-radius: 3px; color: var(--cyan); font-family: var(--font); font-size: 12px; letter-spacing: 4px; padding: 13px; cursor: pointer; text-transform: uppercase; transition: background .15s; }
+  .cbtn:active { background: var(--dc); }
+  .errmsg { font-size: 9px; letter-spacing: 2px; color: var(--orange); text-align: center; margin: -4px 0 8px; min-height: 13px; }
+  .ocard { background: var(--bg2); border: 1px solid rgba(0,255,157,0.18); border-radius: 4px; padding: 18px; margin-bottom: 12px; display: none; animation: fi .3s ease; position: relative; overflow: hidden; }
+  .ocard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--green), transparent); opacity: 0.45; }
+  .ocard.on { display: block; }
+  @keyframes fi { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .olbl { font-size: 8px; letter-spacing: 4px; color: rgba(0,255,157,0.35); text-transform: uppercase; margin-bottom: 14px; }
+  .orow { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid rgba(0,212,255,0.05); }
+  .orow:last-of-type { border-bottom: none; }
+  .otxt { font-size: 12px; color: var(--green); letter-spacing: 1px; }
+  .otxt.p { color: var(--orange); }
+  .otime { font-size: 20px; letter-spacing: 3px; color: var(--green); text-shadow: 0 0 8px rgba(0,255,157,0.28); }
+  .otime.p { color: var(--orange); text-shadow: 0 0 8px rgba(255,107,53,0.35); }
+  .cpbtn { width: 100%; background: transparent; border: 1px solid rgba(0,255,157,0.3); border-radius: 3px; color: var(--green); font-family: var(--font); font-size: 11px; letter-spacing: 3px; padding: 11px; cursor: pointer; text-transform: uppercase; margin-top: 12px; }
+  .cpbtn:active { background: rgba(0,255,157,0.08); }
+  .cpok { font-size: 9px; letter-spacing: 3px; color: var(--green); text-align: center; margin-top: 7px; height: 13px; opacity: 0; transition: opacity .2s; }
+  .cpok.on { opacity: 1; }
+  .ft { font-size: 8px; letter-spacing: 3px; color: rgba(0,212,255,0.12); text-align: center; margin-top: 8px; }
+  .dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--green); box-shadow: 0 0 5px var(--green); animation: bk 2s infinite; vertical-align: middle; margin-right: 4px; }
+  @keyframes bk { 0%,49%{opacity:1} 50%,100%{opacity:.2} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <div class="hdr-lbl"><span class="dot"></span>flight operations</div>
+    <div class="hdr-title">PILOT TIMER</div>
+    <div class="hdr-sub">PRE-FLIGHT SCHEDULE CALCULATOR · v2.0</div>
+  </div>
+  <div class="div"></div>
+  <div class="card">
+    <div class="clbl">// hora de presentación</div>
+    <input type="text" id="pres" maxlength="5" placeholder="HH:MM" inputmode="numeric" autocomplete="off">
+    <div class="prev" id="prev">
+      <div><div class="prev-lbl">🚗 llegada aeropuerto</div><div class="prev-t" id="pt">—</div></div>
+      <button class="wbtn" onclick="window.location.href='waze://'">▶ WAZE</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="clbl">// tiempo de traslado</div>
+    <div class="irow">
+      <input type="number" id="tras" placeholder="30" min="1" max="180" inputmode="numeric">
+      <span class="iunit">MIN</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="clbl">// margen de seguridad</div>
+    <div class="mrow">
+      <button class="mbtn on" onclick="setM(10,this)">+10 MIN<br><span style="font-size:8px;opacity:.55">DÍA TRANQUILO</span></button>
+      <button class="mbtn" onclick="setM(5,this)">+5 MIN<br><span style="font-size:8px;opacity:.55">DÍA AJUSTADO</span></button>
+    </div>
+  </div>
+  <div class="errmsg" id="err"></div>
+  <div class="card" style="padding:0;border:none;background:none;">
+    <button class="cbtn" onclick="calc()">[ CALCULAR TIEMPOS ]</button>
+  </div>
+  <div class="ocard" id="ocard">
+    <div class="olbl">// desglose cronológico</div>
+    <div class="orow"><div class="otxt">🛌 Despertar</div><div class="otime" id="od">--:--</div></div>
+    <div class="orow"><div class="otxt">🏠 Salida de casa</div><div class="otime" id="os">--:--</div></div>
+    <div class="orow"><div class="otxt">🚗 Llegada al aeropuerto</div><div class="otime" id="ol">--:--</div></div>
+    <div class="orow"><div class="otxt p">👨🏻‍✈️ Presentación</div><div class="otime p" id="op">--:--</div></div>
+    <button class="cpbtn" onclick="copiar()">[ COPIAR DESGLOSE ]</button>
+    <div class="cpok" id="cpok">✓ COPIADO AL PORTAPAPELES</div>
+  </div>
+  <div class="ft">PILOT TIMER · FLIGHT OPS UTILITY</div>
+</div>
+<script>
+  let mg=10;
+  function setM(v,b){mg=v;document.querySelectorAll('.mbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');upPrev();}
+  function pt(s){const[h,m]=s.split(':').map(Number);if(isNaN(h)||isNaN(m)||h>23||m>59)return null;return h*60+m;}
+  function ft(t){t=((t%1440)+1440)%1440;return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');}
+  function upPrev(){const v=document.getElementById('pres').value,pr=document.getElementById('prev');if(v.length===5){const m=pt(v);if(m!==null){document.getElementById('pt').textContent=ft(m-20);pr.classList.add('on');document.getElementById('err').textContent='';return;}}pr.classList.remove('on');}
+  document.getElementById('pres').addEventListener('input',function(){let v=this.value.replace(/\D/g,'');if(v.length>=3)v=v.slice(0,2)+':'+v.slice(2,4);this.value=v;upPrev();});
+  function calc(){const ps=document.getElementById('pres').value,ts=document.getElementById('tras').value,e=document.getElementById('err');if(ps.length<5){e.textContent='⚠ INGRESA UNA HORA VÁLIDA';return;}const pm=pt(ps);if(pm===null){e.textContent='⚠ FORMATO INVÁLIDO — USA HH:MM';return;}const t=parseInt(ts);if(!ts||isNaN(t)||t<=0){e.textContent='⚠ INGRESA EL TIEMPO DE TRASLADO';return;}e.textContent='';const l=pm-20,s=l-t-mg,d=s-43;document.getElementById('od').textContent=ft(d);document.getElementById('os').textContent=ft(s);document.getElementById('ol').textContent=ft(l);document.getElementById('op').textContent=ps;const o=document.getElementById('ocard');o.classList.add('on');o.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  function copiar(){const d=document.getElementById('od').textContent;if(d==='--:--')return;const txt=`🛌 Despertar: ${d}\n🏠 Salida de casa: ${document.getElementById('os').textContent}\n🚗 Llegada al aeropuerto: ${document.getElementById('ol').textContent}\n👨🏻‍✈️ Presentación: ${document.getElementById('op').textContent}`;try{navigator.clipboard.writeText(txt);}catch(e){const ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);}const c=document.getElementById('cpok');c.classList.add('on');setTimeout(()=>c.classList.remove('on'),2200);}
+</script>
+</body>
+</html>
