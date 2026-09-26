@@ -144,7 +144,7 @@
   function pt(s){const[h,m]=s.split(':').map(Number);if(isNaN(h)||isNaN(m)||h>23||m>59)return null;return h*60+m;}
   function ft(t){t=((t%1440)+1440)%1440;return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');}
   function upPrev(){const v=document.getElementById('pres').value,pr=document.getElementById('prev');if(v.length===5){const m=pt(v);if(m!==null){document.getElementById('pt').textContent=ft(m-getBuffer());pr.classList.add('on');document.getElementById('err').textContent='';return;}}pr.classList.remove('on');}
-  function openWaze(){window.location.href='waze://?ll=-33.3928,-70.7858&navigate=yes';}
+  function openWaze(){window.location.href='waze://?q=Av.+Armando+Cort%C3%ADnez+Ote.+1704,+Pudahuel&navigate=yes';}
   document.getElementById('pres').addEventListener('input',function(){let v=this.value.replace(/\D/g,'');if(v.length>=3)v=v.slice(0,2)+':'+v.slice(2,4);this.value=v;upPrev();});
   function calc(){
     const ps=document.getElementById('pres').value,ts=document.getElementById('tras').value,e=document.getElementById('err');
